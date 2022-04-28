@@ -7,4 +7,4 @@ task:
       memory: 32G
 
     build_script:
-      - ./build-kernel
+      - ./build
