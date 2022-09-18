@@ -4,9 +4,10 @@ set -e -x
 
 WORK="${HOME}/work"
 KERNEL_SRC="${WORK}/kernel-msm"
-CLANG_TAR_URL="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android12L-release/clang-r416183b.tar.gz"
+CLANG_TAR_URL="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android13-release/clang-r450784d.tar.gz"
 BINUTILS_GIT="https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9"
 BINUTILS_32_GIT="https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9"
+BUILD_TOOLS="https://android.googlesource.com/platform/prebuilts/build-tools"
 KERNEL_SOURCE_URL="https://github.com/faoliveira78/android_kernel_oneplus_msm8998"
 ANYKERNEL_GIT="https://github.com/faoliveira78/AnyKernel3"
 
@@ -17,12 +18,13 @@ cd "${WORK}" || exit 1
 if [ ! -d clang ]; then mkdir clang && curl -Lsq "${CLANG_TAR_URL}" -o clang.tgz && tar -xzf clang.tgz -C clang; fi
 [ ! -d binutils ] && git clone --depth=1 "${BINUTILS_GIT}" -b android12L-release binutils
 [ ! -d binutils-32 ] && git clone --depth=1 "${BINUTILS_32_GIT}" -b android12L-release binutils-32
+[ ! -d build_tools ] && git clone --depth=1 "${BUILD_TOOLS}" -b android13-release build_tools
 
 # Clone kernel source
-[ ! -d kernel-msm ] && git clone --depth=1 "${KERNEL_SOURCE_URL}" -b lineage-19.1 kernel-msm
+[ ! -d kernel-msm ] && git clone --depth=1 "${KERNEL_SOURCE_URL}" -b lineage-20 kernel-msm
 
 # Set toolchain path
-PATH="${WORK}/clang/bin:${WORK}/binutils/bin:${WORK}/binutils-32/bin:/bin"
+PATH="${WORK}/clang/bin:${WORK}/binutils/bin:${WORK}/binutils-32/bin:${WORK}/build_tools/linux-x86/bin:/bin"
 
 # Build kernel
 cd "${KERNEL_SRC}" || exit 1
@@ -33,7 +35,9 @@ make_fun() {
 		CC=clang HOSTCC=clang \
 		CLANG_TRIPLE=aarch64-linux-gnu- \
 		CROSS_COMPILE=aarch64-linux-android- \
-		CROSS_COMPILE_ARM32=arm-linux-androideabi- "$@"
+		CROSS_COMPILE_ARM32=arm-linux-androideabi- \
+		LLVM=1 \
+		LLVM_IAS=1 "$@"
 }
 
 # Make defconfig
